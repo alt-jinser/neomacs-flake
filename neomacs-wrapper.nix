@@ -17,16 +17,19 @@ let
   ceramic-directory = runCommand "ceramic-directory" env ''
     set -euo pipefail
 
-    mkdir -p "$out"
-    cp -r ${electron}/* "$out"
+    mkdir "$out"
+    cp -r ${electron.dist} "$out/electron"
+    cp -r ${electron}/bin "$out/bin"
     chmod -R u+w "$out"
 
+    echo $out
+
     sbcl \
+      --no-sysinit --no-userinit --non-interactive \
       --eval '(load (sb-ext:posix-getenv "ASDF"))' \
       --eval "(asdf:load-system 'ceramic)" \
-      --eval "(setq ceramic.file::*ceramic-directory* \"$out/libexec/\")" \
-      --eval "(ceramic:setup)" \
-      --quit
+      --eval "(setq ceramic.file::*ceramic-directory* \"$out/\")" \
+      --eval "(ceramic:setup)"
   '';
 
   patchedCeramic = ceramic.overrideAttrs (final: prev: {
@@ -48,11 +51,11 @@ writeShellApplication {
   runtimeInputs = [ sbclWithNeomacs' ];
   text = ''
     sbcl \
+      --no-sysinit --no-userinit \
       --eval '(load (sb-ext:posix-getenv "ASDF"))' \
       --eval "(asdf:load-system 'ceramic)" \
       --eval "(asdf:load-system 'neomacs)" \
       --eval '(setq ceramic.runtime:*releasep* t)'
-      # --eval '(neomacs:start nil)' \
-      # --quit
+      # --eval '(neomacs:start nil)'
   '';
 }
