@@ -1,7 +1,8 @@
 {
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { nixpkgs, ... }:
+  outputs =
+    { nixpkgs, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
@@ -14,7 +15,8 @@
         named-closure = callPackage ./named-closure.nix { };
         lwcells = callPackage ./lwcells.nix { inherit named-closure; };
         _3bst = callPackage ./3bst.nix { };
-        ceramic = sbclPkgs.ceramic.overrideAttrs (old: {
+        ceramic = sbclPkgs.ceramic.overrideLispAttrs (oldAttrs: {
+          version = "git";
           src = pkgs.fetchFromGitHub {
             owner = "ceramic";
             repo = "ceramic";
@@ -23,7 +25,14 @@
           };
         });
         neomacs = callPackage ./neomacs.nix { inherit lwcells _3bst ceramic; };
-        neomacs-wrapper = callPackage ./neomacs-wrapper.nix { inherit lwcells _3bst ceramic neomacs; };
+        neomacs-wrapper = callPackage ./neomacs-wrapper.nix {
+          inherit
+            lwcells
+            _3bst
+            ceramic
+            neomacs
+            ;
+        };
       };
     };
 }
